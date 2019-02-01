@@ -1,0 +1,40 @@
+{
+  "name": "locale-grubber",
+  "version": "0.1.1",
+  "description": "Scans files for localization tokens and create translate json files",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc --sourceMap false",
+    "clean": "rm -rf ./lib/",
+    "prepack": "npm run clean && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/borro/locale-grubber.git"
+  },
+  "keywords": [
+    "localization",
+    "i18n",
+    "locale-grubber",
+    "i18next"
+  ],
+  "author": "Borro",
+  "license": "MIT",
+  "bin": "lib/index.js",
+  "bugs": {
+    "url": "https://github.com/borro/locale-grubber/issues"
+  },
+  "homepage": "https://github.com/borro/locale-grubber#readme",
+  "dependencies": {
+    "commander": "^2.19.0",
+    "glob": "^7.1.3",
+    "i18next": "^14.0.1",
+    "named-js-regexp": "^1.3.4"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.1",
+    "@types/node": "^10.12.18",
+    "typescript": "^3.2.2"
+  }
+}
