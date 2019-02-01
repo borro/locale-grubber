@@ -180,7 +180,7 @@ function mergeTokens(object: Tokens, source: Tokens): Tokens {
 
 function writeI18nFiles(dir: string, i18nDirName: string, tokensOnLanguages: TokensOnLanguages) {
     for (let language in tokensOnLanguages) {
-        let fileName = `${dir}${i18nDirName}/${getModuleName(dir)}.${language}.json`;
+        let fileName = `${dir}/${i18nDirName}/${getModuleName(dir)}.${language}.json`;
         try {
             mkdirSync(dirname(fileName), {recursive: true});
         } catch (e) {
