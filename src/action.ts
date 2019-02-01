@@ -32,7 +32,7 @@ interface TokensOnLanguages {
 }
 
 function getConfiguration(config: string): Configuration {
-    return require(config);
+    return JSON.parse(readFileSync(config, 'utf8'));
 }
 
 function arrayToTokens(array: string[]): Tokens {
@@ -44,10 +44,16 @@ function arrayToTokens(array: string[]): Tokens {
     return tokens;
 }
 
-function getDirsForI18n(configuration: Configuration): string[] {
-    return globSync(`{${configuration.includeDirs.join(',')}}`, {
-        ignore: configuration.excludeDirs
-    });
+function getDirsForI18n(dirs: string[], configuration: Configuration): string[] {
+    let dirsForI18n: string[] = [];
+    for (let dir of dirs) {
+        dirsForI18n = dirsForI18n.concat(globSync(`{${configuration.includeDirs.join(',')}}`, {
+            ignore: configuration.excludeDirs,
+            cwd: `${process.cwd()}/${dir}/`,
+            absolute: true
+        }));
+    }
+    return dirsForI18n;
 }
 
 function grubTokensByDir(dir: string, fileRules: ConfigurationFileRule[], languages: string[], i18nextPlural: string | null): TokensOnLanguages {
@@ -59,7 +65,8 @@ function grubTokensByDir(dir: string, fileRules: ConfigurationFileRule[], langua
     for (let rule of fileRules) {
         let filesForGrub = globSync(`{${rule.include.join(',')}}`, {
             cwd: dir,
-            ignore: rule.exclude
+            ignore: rule.exclude,
+            absolute: true
         });
 
         let grubbers: GrubberInterface[] = [];
@@ -72,7 +79,7 @@ function grubTokensByDir(dir: string, fileRules: ConfigurationFileRule[], langua
         }
 
         for (let file of filesForGrub) {
-            let data = readFileSync(`${dir}${file}`, 'utf8');
+            let data = readFileSync(file, 'utf8');
             for (let grubber of grubbers) {
                 let tmp = grubber.grub(data, languages);
                 for (let lang of languages) {
@@ -95,12 +102,17 @@ function getModuleName(dir: string): string {
 function getOldTokens(dir: string, i18nDirName: string, languages: string[]): TokensOnLanguages {
     let result: TokensOnLanguages = {};
     for (let language of languages) {
+        let path = `${dir}/${i18nDirName}/${getModuleName(dir)}.${language}.json`;
         try {
             result[language] = treeObjectToTokens(JSON.parse(
-                readFileSync(`${dir}${i18nDirName}/${getModuleName(dir)}.${language}.json`, 'utf8')
+                readFileSync(path, 'utf8')
             ));
         } catch (error) {
-            console.error(error)
+            if (error.code === 'ENOENT') {
+                console.info(`File ${path} not found`);
+            } else {
+                console.error(error)
+            }
         }
     }
 
@@ -183,13 +195,13 @@ function writeI18nFiles(dir: string, i18nDirName: string, tokensOnLanguages: Tok
 
 export function run(dirs: string[], preserveKeys: boolean, config: string): number {
     let configuration = getConfiguration(config);
-    let i18nDirs = getDirsForI18n(configuration);
+    let i18nDirs = getDirsForI18n(dirs, configuration);
     console.info('Dirs for i18n:');
 
     for (let dir of i18nDirs) {
         console.info(dir);
-        let grubbedTokens = grubTokensByDir(`${process.cwd()}/${dir}`, configuration.fileRules, configuration.languages, configuration.i18nextPlural || null);
-        let oldTokens = getOldTokens(`${process.cwd()}/${dir}`, configuration.i18nDirName, configuration.languages);
+        let grubbedTokens = grubTokensByDir(dir, configuration.fileRules, configuration.languages, configuration.i18nextPlural || null);
+        let oldTokens = getOldTokens(dir, configuration.i18nDirName, configuration.languages);
         let newTokens: TokensOnLanguages = {};
         for (let language of configuration.languages) {
             newTokens[language] = mergeTokens(
@@ -197,7 +209,7 @@ export function run(dirs: string[], preserveKeys: boolean, config: string): numb
                 oldTokens[language] !== undefined ? oldTokens[language] : {}
             );
         }
-        writeI18nFiles(`${process.cwd()}/${dir}`, configuration.i18nDirName, newTokens);
+        writeI18nFiles(dir, configuration.i18nDirName, newTokens);
     }
 
     return 0;
