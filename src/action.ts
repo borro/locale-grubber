@@ -4,7 +4,6 @@ import {basename, dirname} from "path";
 import {GrubberInterface, GrubberTokens} from "./grubbers/grubber";
 import {createGrubberByName} from "./grubbers/helpers";
 
-
 export type ConfigurationFileRule = {
     include: string[], //glob pattern
     exclude?: string[],
@@ -26,7 +25,6 @@ type Tokens = {
     [token: string]: string | null
 };
 
-
 interface TokensOnLanguages {
     [languages: string]: Tokens
 }
@@ -37,7 +35,7 @@ function getConfiguration(config: string): Configuration {
 
 function arrayToTokens(array: string[]): Tokens {
     let tokens: Tokens = {};
-    for (let token of array.sort()) {
+    for (let token of array) {
         tokens[token] = null;
     }
 
@@ -164,7 +162,7 @@ function tokensToTreeObject(tokens: Tokens): any {
     return object;
 }
 
-function mergeTokens(object: Tokens, source: Tokens): Tokens {
+function mergeTokens(object: Tokens, source: Tokens, preserveSourceKeys: boolean = false): Tokens {
     let result: Tokens = {};
     for (let key in object) if (object.hasOwnProperty(key)) {
         if (source[key] !== undefined) {
@@ -175,7 +173,21 @@ function mergeTokens(object: Tokens, source: Tokens): Tokens {
             result[key] = `! ${key}`;
         }
     }
+    if (preserveSourceKeys) {
+        for (let key in source) {
+            if (result[key] === undefined) {
+                result[key] = source[key];
+            }
+        }
+    }
     return result;
+}
+
+function sortTokensByKeys(tokens: Tokens): Tokens {
+    return Object.keys(tokens).sort().reduce<Tokens>((newTokens, key: string) => {
+        newTokens[key] = tokens[key];
+        return newTokens
+    }, {});
 }
 
 function writeI18nFiles(dir: string, i18nDirName: string, tokensOnLanguages: TokensOnLanguages) {
@@ -188,7 +200,7 @@ function writeI18nFiles(dir: string, i18nDirName: string, tokensOnLanguages: Tok
                 throw e;
             }
         }
-        let jsonString = JSON.stringify(tokensToTreeObject(tokensOnLanguages[language]), null, 2);
+        let jsonString = JSON.stringify(tokensToTreeObject(sortTokensByKeys(tokensOnLanguages[language])), null, 2);
         writeFileSync(fileName, jsonString + "\n");
     }
 }
@@ -206,7 +218,8 @@ export function run(dirs: string[], preserveKeys: boolean, config: string): numb
         for (let language of configuration.languages) {
             newTokens[language] = mergeTokens(
                 grubbedTokens[language],
-                oldTokens[language] !== undefined ? oldTokens[language] : {}
+                oldTokens[language] !== undefined ? oldTokens[language] : {},
+                preserveKeys
             );
         }
         writeI18nFiles(dir, configuration.i18nDirName, newTokens);

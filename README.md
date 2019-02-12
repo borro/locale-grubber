@@ -18,7 +18,8 @@ Usage: index [options] <rootDir> [otherRootDirs...]
 Scan <rootDir> and [otherRootDirs] and write locale files
 
 Options:
-  -c, --config <config>  Path to config (default: "/home/borro/projects/ng-localizer/locale-grubber.config.json")
+  -p, --preserve-keys    For preserve keys in project. Without it will delete unused keys
+  -c, --config <config>  Path to config (default: `${process.cwd()}/locale-grubber.config.json`)
   -h, --help             output usage information
 
 ```
