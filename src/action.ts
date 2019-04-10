@@ -193,7 +193,7 @@ function writeI18nFiles(dir: string, i18nDirName: string, tokensOnLanguages: Tok
     }
 }
 
-export function run(dirs: string[], preserveKeys: boolean, config: string): number {
+export function run(dirs: string[], preserveKeys: boolean, validate: boolean, config: string): number {
     let configuration = getConfiguration(config);
     let i18nDirs = getDirsForI18n(dirs, configuration);
     console.info('Dirs for i18n:');
@@ -210,15 +210,17 @@ export function run(dirs: string[], preserveKeys: boolean, config: string): numb
                 oldTokens[language] !== undefined ? oldTokens[language] : {}
             );
         }
-        if (program.validate){
+        if (validate){
             const equal = JSON.stringify(newTokens) === JSON.stringify(oldTokens);
             if (!equal) {
                 invalid = true;
                 console.error(`Translations must be fixed for folder: ${dir}/${configuration.i18nDirName}`);
             }
-        } else writeI18nFiles(dir, configuration.i18nDirName, newTokens);
+        } else {
+            writeI18nFiles(dir, configuration.i18nDirName, newTokens);
+        }
 
     }
 
-    return invalid ? -1 : 0;
+    return invalid ? 1 : 0;
 }
