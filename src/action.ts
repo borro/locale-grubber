@@ -63,7 +63,8 @@ function grubTokensByDir(dir: string, fileRules: ConfigurationFileRule[], langua
         tokens[lang] = [];
     }
     for (let rule of fileRules) {
-        let filesForGrub = globSync(`{${rule.include.join(',')}}`, {
+        const globPattern = (rule.include.length === 1 ? rule.include[0] : "{" + rule.include.join(',') + "}");
+        const filesForGrub = globSync(globPattern, {
             cwd: dir,
             ignore: rule.exclude,
             absolute: true
