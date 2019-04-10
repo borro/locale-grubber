@@ -11,7 +11,7 @@ program
     .option("--validate", "Validate instead of rewrite", false)
     .action(function (rootDir: string, otherRootDirs: string[], cmd: program.Command) {
         otherRootDirs.unshift(rootDir);
-        process.exit(run(otherRootDirs, cmd.preserveKeys || false, cmd.config));
+        process.exit(run(otherRootDirs, cmd.preserveKeys || false, cmd.validate || false, cmd.config));
     });
 
 program.parse(process.argv);
