@@ -197,6 +197,7 @@ export function run(dirs: string[], preserveKeys: boolean, config: string): numb
     let configuration = getConfiguration(config);
     let i18nDirs = getDirsForI18n(dirs, configuration);
     console.info('Dirs for i18n:');
+    let invalid = false;
 
     for (let dir of i18nDirs) {
         console.info(dir);
@@ -209,8 +210,15 @@ export function run(dirs: string[], preserveKeys: boolean, config: string): numb
                 oldTokens[language] !== undefined ? oldTokens[language] : {}
             );
         }
-        writeI18nFiles(dir, configuration.i18nDirName, newTokens);
+        if (program.validate){
+            const equal = JSON.stringify(newTokens) === JSON.stringify(oldTokens);
+            if (!equal) {
+                invalid = true;
+                console.error(`Translations must be fixed for folder: ${dir}/${configuration.i18nDirName}`);
+            }
+        } else writeI18nFiles(dir, configuration.i18nDirName, newTokens);
+
     }
 
-    return 0;
+    return invalid ? -1 : 0;
 }
