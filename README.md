@@ -20,6 +20,7 @@ Scan <rootDir> and [otherRootDirs] and write locale files
 Options:
   -c, --config <config>  Path to config (default: "/home/borro/projects/ng-localizer/locale-grubber.config.json")
   -h, --help             output usage information
+  --validate             Validate files instead of rewrite. Logs erroneous files names to console
 
 ```
 ## Config
