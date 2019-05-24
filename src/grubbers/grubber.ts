@@ -1,4 +1,5 @@
 import * as i18next from 'i18next';
+import { getKeyErrors, getRuleName, normalizeKey } from './helpers';
 
 export interface GrubberTokens {
     [language: string]: string[],
@@ -8,29 +9,52 @@ export interface GrubberInterface {
     grub(string: string, languages: string[]): GrubberTokens;
 
     needPlural(string: string, language: string): string[];
+
+    validateKey(str: string): grubber.RuleError;
 }
 
 export interface GrubberOptionsInterface {
+    cwd: string;
+    keyRules?: grubber.RuleKey[];
     languages: string[];
     i18nextPlural: string | null;
-
-    [option: string]: string | string[] | null;
 }
 
 export abstract class AbstractGrubber implements GrubberInterface {
     private i18nextRules: { [language: string]: { numbers: number[] } } = {};
     private i18nextPlural: string | null = null;
 
-    protected constructor(options: GrubberOptionsInterface) {
-        if (options.i18nextPlural) {
-            this.initI18Next(options.languages, options.i18nextPlural);
+    protected constructor(private _options: GrubberOptionsInterface) {
+        if (_options.i18nextPlural) {
+            this.initI18Next(_options.languages, _options.i18nextPlural);
         }
     }
 
     abstract grub(string: string, languages: string[]): GrubberTokens;
 
-    needPlural(string: string, language: string): string[] {
+    public needPlural(string: string, language: string): string[] {
         return this.detectSuffixes(language, this.i18nextPlural, string);
+    }
+
+    public validateKey(key: string): grubber.RuleError {
+        return getKeyErrors(key, this._getRules());
+    }
+
+    private _getRules(): grubber.Rule[] {
+        if (!this._options.keyRules) {
+            return [];
+        }
+
+        return this._options.keyRules.map(rule => {
+            if (typeof rule === 'string' && getRuleName(rule) === 'namespace') {
+                return <grubber.Rule>{
+                    ruleKey: 'namespace',
+                    namespace: normalizeKey(this._options.cwd.split('/').pop(), this._options.keyRules)
+                }
+            } else {
+                return rule;
+            }
+        })
     }
 
     private initI18Next(languages: string[], i18nextPlural: string | null): void {
