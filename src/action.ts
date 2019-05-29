@@ -1,15 +1,15 @@
 import {mkdirSync, readFileSync, writeFileSync} from "fs";
 import {sync as globSync} from "glob";
 import {basename, dirname} from "path";
-import {GrubberInterface, GrubberTokens} from "./grubbers/grubber";
+import {GrubberInterface, GrubberTokens, GrubberOptionsInterface} from "./grubbers/grubber";
 import {createGrubberByName} from "./grubbers/helpers";
-
+import { GrubberOptions } from './grubbers/regexp';
 
 export type ConfigurationFileRule = {
     include: string[], //glob pattern
     exclude?: string[],
     grubbers: {
-        [grubberName: string]: { [option: string]: string | string[]; }
+        [grubberName: string]: GrubberOptionsInterface
     }
 }
 
@@ -58,7 +58,8 @@ function getDirsForI18n(dirs: string[], configuration: Configuration): string[] 
 
 function grubTokensByDir(dir: string, fileRules: ConfigurationFileRule[], languages: string[], i18nextPlural: string | null): TokensOnLanguages {
     let tokens: GrubberTokens = {},
-        tokensOnLanguages: TokensOnLanguages = {};
+        tokensOnLanguages: TokensOnLanguages = {},
+        errors: string[] = [];
     for (let lang of languages) {
         tokens[lang] = [];
     }
@@ -72,23 +73,34 @@ function grubTokensByDir(dir: string, fileRules: ConfigurationFileRule[], langua
 
         let grubbers: GrubberInterface[] = [];
         for (let grubberName in rule.grubbers) {
-            let options = Object.assign({
-                languages: languages,
-                i18nextPlural: i18nextPlural
-            }, rule.grubbers[grubberName]);
+            let grubberOptions: GrubberOptionsInterface = rule.grubbers[grubberName],
+                options = Object.assign({
+                    cwd: dir,
+                    languages: languages,
+                    i18nextPlural: i18nextPlural
+                }, grubberOptions) as GrubberOptions;
             grubbers.push(createGrubberByName(grubberName, options));
         }
 
         for (let file of filesForGrub) {
             let data = readFileSync(file, 'utf8');
             for (let grubber of grubbers) {
-                let tmp = grubber.grub(data, languages);
-                for (let lang of languages) {
-                    tokens[lang] = tokens[lang].concat(tmp[lang]);
+                try {
+                    let tmp = grubber.grub(data, languages);
+                    for (let lang of languages) {
+                        tokens[lang] = tokens[lang].concat(tmp[lang]);
+                    }
+                } catch (e) {
+                    errors.push(...e);
                 }
             }
         }
     }
+
+    if (errors.length) {
+        throw errors;
+    }
+
     for (let lang of languages) {
         tokensOnLanguages[lang] = arrayToTokens(tokens[lang]);
     }
@@ -197,31 +209,39 @@ function writeI18nFiles(dir: string, i18nDirName: string, tokensOnLanguages: Tok
 export function run(dirs: string[], preserveKeys: boolean, validate: boolean, config: string): number {
     let configuration = getConfiguration(config);
     let i18nDirs = getDirsForI18n(dirs, configuration);
+    let errors: string[] = [];
+    let tasks: [string, string, TokensOnLanguages][] = [];
+
     console.info('Dirs for i18n:');
-    let invalid = false;
-
     for (let dir of i18nDirs) {
-        console.info(dir);
-        let grubbedTokens = grubTokensByDir(dir, configuration.fileRules, configuration.languages, configuration.i18nextPlural || null);
-        let oldTokens = getOldTokens(dir, configuration.i18nDirName, configuration.languages);
-        let newTokens: TokensOnLanguages = {};
-        for (let language of configuration.languages) {
-            newTokens[language] = mergeTokens(
-                grubbedTokens[language],
-                oldTokens[language] !== undefined ? oldTokens[language] : {}
-            );
-        }
-        if (validate){
-            const equal = JSON.stringify(newTokens) === JSON.stringify(oldTokens);
-            if (!equal) {
-                invalid = true;
-                console.error(`Translations must be fixed for folder: ${dir}/${configuration.i18nDirName}`);
+        try {
+            let grubbedTokens = grubTokensByDir(dir, configuration.fileRules, configuration.languages, configuration.i18nextPlural || null);
+            let oldTokens = getOldTokens(dir, configuration.i18nDirName, configuration.languages);
+            let newTokens: TokensOnLanguages = {};
+            for (let language of configuration.languages) {
+                newTokens[language] = mergeTokens(
+                    grubbedTokens[language],
+                    oldTokens[language] !== undefined ? oldTokens[language] : {}
+                );
             }
-        } else {
-            writeI18nFiles(dir, configuration.i18nDirName, newTokens);
+            if (validate){
+                const equal = JSON.stringify(newTokens) === JSON.stringify(oldTokens);
+                if (!equal) {
+                    errors.push(`Translations must be fixed for folder: ${dir}/${configuration.i18nDirName}`);
+                }
+            } else {
+                tasks.push([dir, configuration.i18nDirName, newTokens]);
+            }
+        } catch (e) {
+            errors.push(`Errors found in ${dir}:`, ...e);
         }
-
     }
 
-    return invalid ? 1 : 0;
+    if (errors.length) {
+        console.error(errors.join('\n'));
+        return 1;
+    }
+
+    tasks.forEach(args => writeI18nFiles(...args));
+    return 0;
 }
