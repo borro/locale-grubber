@@ -238,10 +238,10 @@ export function run(dirs: string[], preserveKeys: boolean, validate: boolean, co
     }
 
     if (errors.length) {
-        throw new Error(errors.join('\n'));
-    } else {
-        tasks.forEach(args => writeI18nFiles(...args))
+        console.error(errors.join('\n'));
+        return 1;
     }
 
+    tasks.forEach(args => writeI18nFiles(...args));
     return 0;
 }
