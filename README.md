@@ -1,6 +1,6 @@
 # locale-grubber
 
-The picker to search and create/edit translate json files. 
+The picker to search and create/edit translate json files.
 
 ## Installation
 Using npm:
@@ -41,6 +41,10 @@ Options:
             "exclude": ["**/*.spec.ts"],
             "grubbers": {
                 "regexp": {
+                    "keyRules": [
+                        "namespace",
+                        "camelCase"
+                    ],
                     "patterns": [
                         "name: *'(?<token>[.\\w-]+)', *(routerLink|children)",
                         "[`'\"](?<token>[aA-zZ0-9._\\-]*)[`'\"] *\\| *translate",
@@ -73,7 +77,7 @@ Options:
 * i18nDirName — name for localization dir
 * languages - languages in project (create files and keys for all added languages)
 * i18nextPlural - create plural forms for [i18next](https://www.i18next.com/translation-function/plurals), possible values:
-    * "v1" — use json version v1, example `token, token_plural_2, token_plural_5` 
-    * "v2" — use json version v2, example `token_1, token_2, token_5` 
-    * "v3" — use json version v3, example `token_0, token_1, token_2` 
-    * `false` or not defined — disabled 
+    * "v1" — use json version v1, example `token, token_plural_2, token_plural_5`
+    * "v2" — use json version v2, example `token_1, token_2, token_5`
+    * "v3" — use json version v3, example `token_0, token_1, token_2`
+    * `false` or not defined — disabled
