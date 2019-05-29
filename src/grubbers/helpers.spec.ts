@@ -1,4 +1,4 @@
-import { getRuleName, applyRule, getKeyErrors } from './helpers';
+import { getRuleName, applyRule, getKeyErrors, normalizeKey } from './helpers';
 
 describe('Helpers', () => {
 
@@ -16,6 +16,16 @@ describe('Helpers', () => {
             let errors = getKeyErrors('@tm-shared.bad_key', [{ ruleKey: 'namespace', namespace: 'global'}, "camelCase"]);
             expect(errors[0]).toEqual(['namespace', 'camelCase']);
             expect(errors[1]).toBe('global.tmShared.badKey');
+        });
+
+        it('should normalize key', () => {
+            expect(normalizeKey('@tm-shared.strange_key.000_0.', [
+                {
+                    ruleKey: 'namespace',
+                    namespace: 'tmShared'
+                },
+                "camelCase"
+            ])).toBe('tmShared.strangeKey.0000');
         });
 
         describe('namespace', () => {

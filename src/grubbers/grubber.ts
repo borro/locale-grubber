@@ -41,20 +41,25 @@ export abstract class AbstractGrubber implements GrubberInterface {
     }
 
     private _getRules(): grubber.Rule[] {
-        if (!this._options.keyRules) {
+        let rules = this._options.keyRules;
+
+        if (!rules) {
             return [];
         }
 
-        return this._options.keyRules.map(rule => {
+        return rules.map(rule => {
             if (typeof rule === 'string' && getRuleName(rule) === 'namespace') {
                 return <grubber.Rule>{
                     ruleKey: 'namespace',
-                    namespace: normalizeKey(this._options.cwd.split('/').pop(), this._options.keyRules)
+                    namespace: normalizeKey(
+                        this._options.cwd.split('/').pop(),
+                        rules!.filter(x => getRuleName(x) !== 'namespace')
+                    )
                 }
             } else {
                 return rule;
             }
-        })
+        }).sort(r => (getRuleName(r) === 'namespace') ? 0 : -1);
     }
 
     private initI18Next(languages: string[], i18nextPlural: string | null): void {
