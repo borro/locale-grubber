@@ -20,11 +20,11 @@ describe('Helpers', () => {
 
         it('should normalize key', () => {
             expect(normalizeKey('@tm-shared.strange_key.000_0.', [
+                "camelCase",
                 {
                     ruleKey: 'namespace',
                     namespace: 'tmShared'
                 },
-                "camelCase"
             ])).toBe('tmShared.strangeKey.0000');
         });
 

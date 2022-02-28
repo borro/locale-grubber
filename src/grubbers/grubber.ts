@@ -23,6 +23,11 @@ export interface GrubberOptionsInterface {
 export abstract class AbstractGrubber implements GrubberInterface {
     private i18nextRules: { [language: string]: { numbers: number[] } } = {};
     private i18nextPlural: string | null = null;
+    private pluralStandartMap = new Map([
+        [1,  ""],
+        [2, "_few"],
+        [5, "_other"],
+    ]);
 
     protected constructor(private _options: GrubberOptionsInterface) {
         if (_options.i18nextPlural) {
@@ -78,10 +83,17 @@ export abstract class AbstractGrubber implements GrubberInterface {
         if (!this.i18nextRules[lng]) {
             return [token];
         } else if (this.i18nextRules[lng].numbers.length === 2) {
+            if (version === 'v4') {
+                return [token, `${token}_other`];
+            }
             return [token, `${token}_plural`];
         } else {
             return this.i18nextRules[lng].numbers.reduce((red: string[], n: number, i: number) => {
-                if (version === 'v3') {
+                if (version === 'v4') {
+                    const newKey = token + this.pluralStandartMap.get(n);
+                    return [...red, newKey];
+                }
+                else if (version === 'v3') {
                     red.push(`${token}_${i}`);
                 } else if (version === 'v2') {
                     if (this.i18nextRules[lng].numbers.length === 1) {
