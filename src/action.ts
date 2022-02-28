@@ -19,7 +19,7 @@ export type Configuration = {
     fileRules: ConfigurationFileRule[],
     i18nDirName: string,
     languages: string[],
-    i18nextPlural?: "v1" | "v2" | "v3" | false
+    i18nextPlural?: "v1" | "v2" | "v3" | "v4" | false
 };
 
 type Tokens = {
