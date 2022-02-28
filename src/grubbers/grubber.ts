@@ -90,20 +90,17 @@ export abstract class AbstractGrubber implements GrubberInterface {
         } else {
             return this.i18nextRules[lng].numbers.reduce((red: string[], n: number, i: number) => {
                 switch(version) {
-                    case 'v4': {
+                    case 'v4':
                         const newKey = token + this.pluralStandartMap.get(n);
                         return [...red, newKey];
-                    }
-                    case 'v3': {
+                    case 'v3':
                         return [...red, `${token}_${i}`];
-                    }
-                    case 'v2': {
+                    case 'v2':
                         if (this.i18nextRules[lng].numbers.length === 1) {
                             return [...red, token]
                         } else {
                             return [...red, `${token}_${n}`];
                         }
-                    }
                     default:
                         return red;
                 }
