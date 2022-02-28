@@ -89,26 +89,24 @@ export abstract class AbstractGrubber implements GrubberInterface {
             return [token, `${token}_plural`];
         } else {
             return this.i18nextRules[lng].numbers.reduce((red: string[], n: number, i: number) => {
-                if (version === 'v4') {
-                    const newKey = token + this.pluralStandartMap.get(n);
-                    return [...red, newKey];
-                }
-                else if (version === 'v3') {
-                    red.push(`${token}_${i}`);
-                } else if (version === 'v2') {
-                    if (this.i18nextRules[lng].numbers.length === 1) {
-                        red.push(token);
-                    } else {
-                        red.push(`${token}_${this.i18nextRules[lng].numbers[i]}`);
+                switch(version) {
+                    case 'v4': {
+                        const newKey = token + this.pluralStandartMap.get(n);
+                        return [...red, newKey];
                     }
-                } else {
-                    if (this.i18nextRules[lng].numbers[i] === 1) {
-                        red.push(token);
-                    } else {
-                        red.push(`${token}_plural_${this.i18nextRules[lng].numbers[i]}`);
+                    case 'v3': {
+                        return [...red, `${token}_${i}`];
                     }
+                    case 'v2': {
+                        if (this.i18nextRules[lng].numbers.length === 1) {
+                            return [...red, token]
+                        } else {
+                            return [...red, `${token}_${n}`];
+                        }
+                    }
+                    default:
+                        return red;
                 }
-                return red;
             }, []);
         }
     }
