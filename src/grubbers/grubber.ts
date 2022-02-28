@@ -101,6 +101,13 @@ export abstract class AbstractGrubber implements GrubberInterface {
                         } else {
                             return [...red, `${token}_${n}`];
                         }
+                    case 'v1':
+                        if (this.i18nextRules[lng].numbers[i] === 1) {
+                            return [...red, token];
+                        } else {
+                            const newKey = `${token}_plural_${this.i18nextRules[lng].numbers[i]}`;
+                            return [...red, newKey];
+                        }
                     default:
                         return red;
                 }
