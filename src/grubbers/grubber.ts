@@ -2,7 +2,7 @@ import * as i18next from 'i18next';
 import { getKeyErrors, getRuleName, normalizeKey } from './helpers';
 
 export interface GrubberTokens {
-    [language: string]: string[],
+    [language: string]: string[];
 }
 
 export interface GrubberInterface {
@@ -24,7 +24,7 @@ export abstract class AbstractGrubber implements GrubberInterface {
     private i18nextRules: { [language: string]: { numbers: number[] } } = {};
     private i18nextPlural: string | null = null;
     private pluralStandartMap = new Map([
-        [1,  ""],
+        [1, ""],
         [2, "_few"],
         [5, "_other"],
     ]);
@@ -115,5 +115,3 @@ export abstract class AbstractGrubber implements GrubberInterface {
         }
     }
 }
-
-

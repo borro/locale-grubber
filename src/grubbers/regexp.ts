@@ -32,7 +32,10 @@ export class Grubber extends AbstractGrubber {
 
             for (let language of languages) {
                 if (key) {
-                    tokens[language].push(key);
+                    const skipKey = key.endsWith('_few') && language === 'en';
+                    if (!skipKey) {
+                        tokens[language].push(key);
+                    }
                 }
                 if (token.group('plural')) {
                     tokens[language] = tokens[language].concat(
