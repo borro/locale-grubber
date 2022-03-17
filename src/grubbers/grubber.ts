@@ -26,7 +26,7 @@ export abstract class AbstractGrubber implements GrubberInterface {
     private pluralStandartMap = new Map([
         [1, ""],
         [2, "_few"],
-        [5, "_other"],
+        [5, "_many"],
     ]);
 
     protected constructor(private _options: GrubberOptionsInterface) {

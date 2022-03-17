@@ -32,8 +32,9 @@ export class Grubber extends AbstractGrubber {
 
             for (let language of languages) {
                 if (key) {
-                    const skipKey = key.endsWith('_few') && language === 'en';
-                    if (!skipKey) {
+                    const skipForEn = (key.endsWith('_few') || key.endsWith('_many')) && language === 'en';
+                    const skipForRu = key.endsWith('_other') && language === 'ru';
+                    if (!skipForEn && !skipForRu) {
                         tokens[language].push(key);
                     }
                 }
