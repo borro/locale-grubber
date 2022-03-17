@@ -80,4 +80,5 @@ Options:
     * "v1" — use json version v1, example `token, token_plural_2, token_plural_5`
     * "v2" — use json version v2, example `token_1, token_2, token_5`
     * "v3" — use json version v3, example `token_0, token_1, token_2`
+    * "v4" — use json version v4, example `token, token_few, token_other`
     * `false` or not defined — disabled
