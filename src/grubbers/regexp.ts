@@ -9,8 +9,11 @@ export interface GrubberOptions extends GrubberOptionsInterface {
 
 export class Grubber extends AbstractGrubber {
 
+    private IGNORE_NEXT_TOKEN = "locale-ignore-next";
+
     constructor(protected options: GrubberOptions) {
         super(options);
+        this.options.patterns.push(this.IGNORE_NEXT_TOKEN)
     }
 
     public grub(string: string, languages: string[]): GrubberTokens {
@@ -22,6 +25,10 @@ export class Grubber extends AbstractGrubber {
             tokens[language] = [];
         }
         while ((token = regexp.exec(string)) !== null) {
+            if (token[0] === this.IGNORE_NEXT_TOKEN) {
+                regexp.exec(string)
+                continue;
+            }
             let key = token.group('token');
             if (key) {
                 let violatedRules = this.validateKey(key);
