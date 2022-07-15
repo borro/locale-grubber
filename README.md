@@ -82,3 +82,8 @@ Options:
     * "v3" — use json version v3, example `token_0, token_1, token_2`
     * "v4" — use json version v4, example `token, token_few, token_other`
     * `false` or not defined — disabled
+
+
+## Additional
+* ignore next line with "locale-ignore-next" comment
+
