@@ -1,6 +1,6 @@
 {
   "name": "locale-grubber",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Scans files for localization tokens and create translate json files",
   "main": "lib/index.js",
   "scripts": {
